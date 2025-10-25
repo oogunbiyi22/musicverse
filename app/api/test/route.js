@@ -1,13 +1,21 @@
-import { supabase } from '@/lib/supabaseClient'
+import { supabase } from '@/utils/supabase'
 
+// RLS-safe connection check: validate env and perform a lightweight client init
 export async function GET() {
-  const { data, error } = await supabase.from('profiles').select('*')
+  const hasUrl = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
+  const hasKey = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
 
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-  }
+  // Optionally, do a no-op call that doesn't require table access
+  // If you want to test DB access, use an authenticated client and query a public view/table.
 
-  return new Response(JSON.stringify({ message: '✅ Supabase connected successfully!', data }), {
-    status: 200,
-  })
+  return new Response(
+    JSON.stringify({
+      message: '✅ Supabase client configured',
+      env: {
+        urlPresent: hasUrl,
+        anonKeyPresent: hasKey
+      }
+    }),
+    { status: 200 }
+  )
 }

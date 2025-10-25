@@ -1,25 +1,24 @@
-'use client'
-
-import { useState } from "react";
-import { supabase } from "@/utils/supabase";
+import { useState } from "react"
+import { supabase } from "@/utils/supabase"
 
 export default function AuthPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(true);
-  const [message, setMessage] = useState("");
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [isLogin, setIsLogin] = useState(true)
+  const [message, setMessage] = useState("")
 
   const handleAuth = async (e: any) => {
-    e.preventDefault();
-    setMessage("");
+    e.preventDefault()
+    setMessage("")
+
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      setMessage(error ? error.message : "Logged in successfully!");
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+      setMessage(error ? error.message : "✅ Logged in successfully!")
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      setMessage(error ? error.message : "Check your email for verification link.");
+      const { error } = await supabase.auth.signUp({ email, password })
+      setMessage(error ? error.message : "✅ Check your email for verification link.")
     }
-  };
+  }
 
   return (
     <div style={{ padding: 30, maxWidth: 400, margin: "auto" }}>
@@ -28,6 +27,7 @@ export default function AuthPage() {
         <input
           type="email"
           placeholder="Email"
+          value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           style={{ display: "block", margin: "10px 0", padding: 8, width: "100%" }}
@@ -35,6 +35,7 @@ export default function AuthPage() {
         <input
           type="password"
           placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
           style={{ display: "block", margin: "10px 0", padding: 8, width: "100%" }}
@@ -56,5 +57,5 @@ export default function AuthPage() {
 
       {message && <p style={{ marginTop: 10 }}>{message}</p>}
     </div>
-  );
+  )
 }

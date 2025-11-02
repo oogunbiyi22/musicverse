@@ -21,6 +21,8 @@ export default function VoiceChat({ sessionId, userId }: VoiceChatProps) {
   const [muted, setMuted] = useState(false)
   const [connecting, setConnecting] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [canSpeak, setCanSpeak] = useState(false)
+  const [voiceOpen, setVoiceOpen] = useState(false)
 
   const topic = useMemo(() => `voice:${sessionId}`, [sessionId])
 
@@ -90,12 +92,36 @@ export default function VoiceChat({ sessionId, userId }: VoiceChatProps) {
       try {
         setError(null)
         setConnecting(true)
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        if (cancelled) return
-        myStream.current = stream
+        // Determine speaking permission
+        const { data: sess } = await supabase
+          .from('sessions')
+          .select('id, created_by, voice_open')
+          .eq('id', sessionId)
+          .single()
 
-        // Apply mute state to mic initially
-        stream.getAudioTracks().forEach(t => (t.enabled = !muted))
+        const { data: member } = await supabase
+          .from('session_members')
+          .select('role, can_speak')
+          .eq('session_id', sessionId)
+          .eq('user_id', userId)
+          .maybeSingle()
+
+        const iAmOwner = !!sess?.created_by && sess.created_by === userId
+        const open = !!sess?.voice_open
+        setVoiceOpen(open)
+
+        const allowed = open || iAmOwner || member?.can_speak || member?.role === 'moderator' || member?.role === 'speaker'
+        setCanSpeak(!!allowed)
+
+        if (allowed) {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          if (cancelled) return
+          myStream.current = stream
+          // Apply mute state to mic initially
+          stream.getAudioTracks().forEach(t => (t.enabled = !muted))
+        } else {
+          myStream.current = null
+        }
 
         const channel = supabase.channel(topic, {
           config: {
@@ -116,6 +142,19 @@ export default function VoiceChat({ sessionId, userId }: VoiceChatProps) {
             try {
               peer?.signal(signal)
             } catch {}
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` }, (payload: any) => {
+            const newOpen = !!payload?.new?.voice_open
+            setVoiceOpen(newOpen)
+            // Re-evaluate speaking permission; owner/moderator handled via separate sub
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'session_members', filter: `session_id=eq.${sessionId},user_id=eq.${userId}` }, (payload: any) => {
+            const role = payload?.new?.role as string | undefined
+            const can = !!payload?.new?.can_speak
+            setCanSpeak((prev) => {
+              const allowed = voiceOpen || can || role === 'moderator' || role === 'speaker'
+              return !!allowed
+            })
           })
           .on('presence', { event: 'sync' }, () => {
             // Determine the full membership and connect to peers deterministically
@@ -200,7 +239,7 @@ export default function VoiceChat({ sessionId, userId }: VoiceChatProps) {
         {connecting ? (
           <span className="text-sm text-gray-500">Connecting…</span>
         ) : (
-          <span className="text-sm text-gray-400">🎙 Voice Chat Active</span>
+          <span className="text-sm text-gray-400">🎙 {canSpeak ? 'Speaker' : 'Listener'} {voiceOpen ? '(Open Room)' : ''}</span>
         )}
         {error && <span className="text-sm text-red-600">{error}</span>}
       </div>

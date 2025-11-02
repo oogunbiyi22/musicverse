@@ -188,6 +188,7 @@ export interface Database {
           is_read: boolean | null
           seen_at: string | null
           file_url: string | null
+          file_path: string | null
         }
         Insert: {
           id?: string
@@ -198,6 +199,7 @@ export interface Database {
           is_read?: boolean | null
           seen_at?: string | null
           file_url?: string | null
+          file_path?: string | null
         }
         Update: {
           id?: string
@@ -208,6 +210,7 @@ export interface Database {
           is_read?: boolean | null
           seen_at?: string | null
           file_url?: string | null
+          file_path?: string | null
         }
         Relationships: [
           {
@@ -270,6 +273,8 @@ export interface Database {
           is_playing: boolean
           current_time: number
           updated_at: string
+          created_by: string | null
+          voice_open: boolean
         }
         Insert: {
           id?: string
@@ -277,6 +282,8 @@ export interface Database {
           is_playing?: boolean
           current_time?: number
           updated_at?: string
+          created_by?: string | null
+          voice_open?: boolean
         }
         Update: {
           id?: string
@@ -284,8 +291,48 @@ export interface Database {
           is_playing?: boolean
           current_time?: number
           updated_at?: string
+          created_by?: string | null
+          voice_open?: boolean
         }
         Relationships: []
+      }
+      ,
+      session_members: {
+        Row: {
+          session_id: string
+          user_id: string
+          role: 'owner' | 'moderator' | 'speaker' | 'listener'
+          can_speak: boolean
+          inserted_at: string
+        }
+        Insert: {
+          session_id: string
+          user_id: string
+          role?: 'owner' | 'moderator' | 'speaker' | 'listener'
+          can_speak?: boolean
+          inserted_at?: string
+        }
+        Update: {
+          session_id?: string
+          user_id?: string
+          role?: 'owner' | 'moderator' | 'speaker' | 'listener'
+          can_speak?: boolean
+          inserted_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_members_session_id_fkey",
+            columns: ["session_id"],
+            referencedRelation: "sessions",
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "session_members_user_id_fkey",
+            columns: ["user_id"],
+            referencedRelation: "users",
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {

@@ -1,4 +1,5 @@
 import { useState } from "react"
+import Link from "next/link"
 import { supabase } from "@/utils/supabase"
 
 export default function AuthPage() {
@@ -55,7 +56,38 @@ export default function AuthPage() {
         </span>
       </p>
 
+      <p style={{ marginTop: 8 }}>
+        Prefer a dedicated page? <Link href="/signup" style={{ color: "blue", textDecoration: "underline" }}>Sign up</Link>
+      </p>
+
       {message && <p style={{ marginTop: 10 }}>{message}</p>}
+
+      <button
+        onClick={async () => {
+          setMessage('')
+          try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: typeof window !== 'undefined' ? `${window.location.origin}/profile` : undefined,
+                queryParams: { prompt: 'select_account' }
+              }
+            })
+            if (error) {
+              setMessage(error.message)
+              return
+            }
+            if (data?.url && typeof window !== 'undefined') {
+              window.location.href = data.url
+            }
+          } catch (e: any) {
+            setMessage(e.message || 'Google sign-in failed')
+          }
+        }}
+        style={{ marginTop: 12, padding: 10, width: '100%', border: '1px solid #e5e7eb', borderRadius: 6 }}
+      >
+        Continue with Google
+      </button>
     </div>
   )
 }

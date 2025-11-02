@@ -1,4 +1,4 @@
-import { Profile, ProfileForm } from '@/types/profile'
+import { Profile } from '@/types/profile'
 import { supabase } from '@/utils/supabase'
 
 export async function getProfile(id: string) {
@@ -26,7 +26,7 @@ export async function getProfile(id: string) {
   }
 }
 
-export async function updateProfile(id: string, profile: ProfileForm) {
+export async function updateProfile(id: string, profile: Partial<Profile>) {
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -46,7 +46,7 @@ export async function updateProfile(id: string, profile: ProfileForm) {
   }
 }
 
-export async function createProfile(id: string, profile: ProfileForm) {
+export async function createProfile(id: string, profile: Partial<Profile>) {
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -63,9 +63,8 @@ export async function createProfile(id: string, profile: ProfileForm) {
 
     if (error) throw error
     return data
-  } catch (error) {
-    console.error('Error creating profile:', error)
-    throw error
-  }
+} catch (error) {
+  console.error('Error creating profile:', error)
+  throw error
 }
 }

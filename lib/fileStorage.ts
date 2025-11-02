@@ -10,7 +10,13 @@ export async function uploadFile(userId: string, file: File) {
       .from("user_uploads")
       .upload(filePath, file)
 
-    if (error) throw error
+    if (error) {
+      // Provide a friendlier hint when the bucket is missing
+      if ((error as any)?.message?.toLowerCase?.().includes('does not exist')) {
+        throw new Error("Storage bucket 'user_uploads' not found. Please create it in Supabase Storage and set it to Public (or switch to signed URLs).")
+      }
+      throw error
+    }
 
     // Get the public URL of the uploaded file
     const { data: publicUrlData } = supabase.storage

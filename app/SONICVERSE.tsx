@@ -8,7 +8,7 @@ export default function Home() {
 
   useEffect(() => {
     const testConnection = async () => {
-      const { data } = await supabase.from('test').select('*')
+      const { data } = await supabase.from<any, any>('test').select('*')
       setData(data)
     }
     testConnection()

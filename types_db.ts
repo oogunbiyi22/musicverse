@@ -18,6 +18,7 @@ export interface Database {
           full_name: string | null
           avatar_url: string | null
           website: string | null
+          role: string | null
           bio: string | null
         }
         Insert: {
@@ -28,6 +29,7 @@ export interface Database {
           full_name?: string | null
           avatar_url?: string | null
           website?: string | null
+          role?: string | null
           bio?: string | null
         }
         Update: {
@@ -38,6 +40,7 @@ export interface Database {
           full_name?: string | null
           avatar_url?: string | null
           website?: string | null
+          role?: string | null
           bio?: string | null
         }
         Relationships: [
@@ -88,6 +91,201 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ]
+      }
+      followers: {
+        Row: {
+          id: string
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followers_follower_id_fkey"
+            columns: ["follower_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followers_following_id_fkey"
+            columns: ["following_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      conversations: {
+        Row: {
+          id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      conversation_participants: {
+        Row: {
+          id: string
+          conversation_id: string
+          user_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          user_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          user_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          sender_id: string
+          content: string
+          created_at: string
+          is_read: boolean | null
+          seen_at: string | null
+          file_url: string | null
+        }
+        Insert: {
+          id?: string
+          conversation_id: string
+          sender_id: string
+          content: string
+          created_at?: string
+          is_read?: boolean | null
+          seen_at?: string | null
+          file_url?: string | null
+        }
+        Update: {
+          id?: string
+          conversation_id?: string
+          sender_id?: string
+          content?: string
+          created_at?: string
+          is_read?: boolean | null
+          seen_at?: string | null
+          file_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ,
+      wave_comments: {
+        Row: {
+          id: string
+          file_url: string
+          user_id: string
+          username: string | null
+          comment: string
+          timestamp: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          file_url: string
+          user_id: string
+          username?: string | null
+          comment: string
+          timestamp: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          file_url?: string
+          user_id?: string
+          username?: string | null
+          comment?: string
+          timestamp?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wave_comments_user_id_fkey"
+            columns: ["user_id"]
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      ,
+      sessions: {
+        Row: {
+          id: string
+          file_url: string
+          is_playing: boolean
+          current_time: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          file_url: string
+          is_playing?: boolean
+          current_time?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          file_url?: string
+          is_playing?: boolean
+          current_time?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

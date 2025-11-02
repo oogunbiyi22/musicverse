@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Musicverse – Supabase Music Sharing Platform
+
+A full-featured music sharing platform built with Next.js 16, Supabase, and TypeScript.
+
+## Features
+
+- **Authentication**
+  - Email/password signup and login
+  - Google OAuth integration
+  - Password reset flow
+  - Auto-profile creation on signup via database trigger
+
+- **Profile Management**
+  - Editable profiles (username, full name, role, bio, avatar)
+  - User logout
+  - Health check endpoint to verify auth + profile setup
+
+- **Music Sharing**
+  - Upload audio files to Supabase Storage
+  - Create posts with title, description, and audio
+  - Public feed with audio playback
+  - Posts display creator username and avatar
+
+- **Security**
+  - Row-Level Security (RLS) policies on profiles and posts
+  - Public read for feed; owners can edit/delete their content
+  - Safe API endpoints for config checks
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (Pages Router), React 19, TypeScript
+- **Backend**: Supabase (Auth, Database, Storage)
+- **Styling**: Tailwind CSS + inline styles
+- **Build**: Turbopack
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js 20+
+- A Supabase project with:
+  - `profiles` table (id, username, full_name, bio, role, avatar_url, etc.)
+  - `posts` table (id, title, content, user_id, audio_url, image_url, created_at, updated_at)
+  - `user_uploads` storage bucket (public)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone and install**
+   ```bash
+   cd musicverse/musicverse
+   npm install
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Configure environment**
+   - Create `.env.local`:
+     ```env
+     NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+     ```
 
-## Learn More
+3. **Apply database migrations** (in Supabase SQL Editor)
+   - Run `db/migrations/001_handle_new_user.sql` — auto-creates profile on signup
+   - Run `db/migrations/002_rls_policies.sql` — enables RLS and sets policies
 
-To learn more about Next.js, take a look at the following resources:
+4. **Create storage bucket** (in Supabase Dashboard > Storage)
+   - Name: `user_uploads`
+   - Access: Public
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Run dev server**
+   ```bash
+   npm run dev
+   ```
+   Visit http://localhost:3000
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+6. **Build for production**
+   ```bash
+   npm run build
+   npm start
+   ```
 
-## Deploy on Vercel
+## Key Routes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Path                 | Purpose                                      |
+|----------------------|----------------------------------------------|
+| `/`                  | Home / Supabase config check                 |
+| `/login`             | Email/password + Google OAuth login          |
+| `/signup`            | Email/password signup                        |
+| `/auth`              | Toggle login/signup (with OAuth)             |
+| `/forgot-password`   | Request password reset email                 |
+| `/reset-password`    | Update password (from email link)            |
+| `/profile`           | Edit profile, logout, health check           |
+| `/upload`            | Upload audio and create post                 |
+| `/posts`             | Public feed with audio playback              |
+| `/api/test`          | RLS-safe env check                           |
+| `/api/health`        | Verify auth session + profile row            |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Database Schema
+
+**profiles**
+- `id` (uuid, PK, references auth.users.id)
+- `username`, `full_name`, `bio`, `role`, `avatar_url`, `website`
+
+**posts**
+- `id` (uuid, PK)
+- `user_id` (uuid, FK to profiles.id)
+- `title`, `content`, `audio_url`, `image_url`
+
+**RLS**: Public read; owners can write/delete their own data.
+
+## Migrations
+
+1. **001_handle_new_user.sql** — auto-insert profile on signup
+2. **002_rls_policies.sql** — enable RLS and create policies
+
+Apply in Supabase SQL Editor in order.
+
+## Troubleshooting
+
+- **Route conflicts**: Pages Router only for auth/features
+- **RLS errors**: Apply migration SQL
+- **Storage 404s**: Ensure `user_uploads` bucket exists and is public
+- **Build errors**: Run `npm run build` to catch type errors
+
+## License
+
+MIT
+
